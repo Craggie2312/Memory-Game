@@ -35,7 +35,7 @@ const ICONS = [
 
 const board = document.getElementById("board");
 const timerInput = document.getElementById("timerInput");
-const timerDisplay = document.getElementById("timeRemaining");
+const progressBar = document.getElementById("progressBar");
 const startBtn = document.getElementById("startBtn");
 const rowsInput = document.getElementById("rowsInput");
 const colsInput = document.getElementById("colsInput");
@@ -47,6 +47,7 @@ let lockBoard = false;
 let matches = 0;
 
 let timer = 60;
+let totalTime = 60;
 let interval;
 let gameStarted = false;
 
@@ -94,8 +95,14 @@ function renderBoard(){
     });
 }
 
+function updateProgressBar(){
+    const percentage = (timer / totalTime) * 100;
+    progressBar.style.width = percentage + "%";
+}
+
 function showPreview(){
     lockBoard = true;
+    updateProgressBar();
     
     // Show all icons for 5 seconds
     setTimeout(()=>{
@@ -170,11 +177,12 @@ function resetTurn(){
 function startTimer(){
     clearInterval(interval);
     timer=parseInt(timerInput.value,10);
-    timerDisplay.textContent=timer;
+    totalTime = timer;
+    updateProgressBar();
 
     interval=setInterval(()=>{
         timer--;
-        timerDisplay.textContent=timer;
+        updateProgressBar();
 
         if(timer<=0){
             clearInterval(interval);
