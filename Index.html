@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memory Game</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#1f2c3d;
+    color:white;
+    text-align:center;
+}
+
+h1{
+    margin-top:20px;
+}
+
+.controls{
+    margin:15px;
+}
+
+#board{
+    width:1150px;
+    margin:auto;
+    display:grid;
+    grid-template-columns:repeat(8, 1fr);
+    gap:2px;
+    background:#2f4159;
+    padding:10px;
+}
+
+.card{
+    height:130px;
+    background:#3a4d66;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:42px;
+    cursor:pointer;
+    user-select:none;
+}
+
+.card.revealed{
+    background:#435b7b;
+}
+
+.card.matched{
+    background:#2f7a4f;
+    cursor:default;
+}
+</style>
+</head>
+<body>
+
+<h1>Memory Game</h1>
+
+<div class="controls">
+    Timer:
+    <input type="number" id="timerInput" value="60" min="10" max="600">
+    <button onclick="startGame()">Start / Restart</button>
+    <h2>Time Left: <span id="timer">60</span></h2>
+</div>
+
+<div id="board"></div>
+
+<script>
+const symbols = [
+    "📦","💰","🛁","🛡️",
+    "✉️","🤠","📷","📶",
+    "🔑","💎","🎯","🧰",
+    "🚗","📱","⚡","🔒"
+];
+
+let deck = [];
+let firstCard = null;
+let secondCard = null;
+let lockBoard = false;
+let matches = 0;
+
+let timerInterval;
+let timeLeft = 60;
+
+function shuffle(array){
+    for(let i=array.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [array[i],array[j]]=[array[j],array[i]];
+    }
+}
+
+function startGame(){
+
+    clearInterval(timerInterval);
+
+    timeLeft = parseInt(document.getElementById("timerInput").value);
+    document.getElementById("timer").textContent = timeLeft;
+
+    timerInterval = setInterval(()=>{
+        timeLeft--;
+        document.getElementById("timer").textContent = timeLeft;
+
+        if(timeLeft <= 0){
+            clearInterval(timerInterval);
+            alert("Time's up!");
+        }
+    },1000);
+
+    deck = [...symbols, ...symbols];
+    shuffle(deck);
+
+    matches = 0;
+    firstCard = null;
+    secondCard = null;
+    lockBoard = false;
+
+    const board = document.getElementById("board");
+    board.innerHTML = "";
+
+    deck.forEach((symbol,index)=>{
+        const card = document.createElement("div");
+        card.className = "card";
+        card.dataset.symbol = symbol;
+        card.dataset.index = index;
+        card.textContent = "?";
+
+        card.addEventListener("click", ()=>flipCard(card));
+
+        board.appendChild(card);
+    });
+}
+
+function flipCard(card){
+
+    if(lockBoard) return;
+    if(card.classList.contains("matched")) return;
+    if(card === firstCard) return;
+
+    card.textContent = card.dataset.symbol;
+    card.classList.add("revealed");
+
+    if(!firstCard){
+        firstCard = card;
+        return;
+    }
+
+    secondCard = card;
+    lockBoard = true;
+
+    if(firstCard.dataset.symbol === secondCard.dataset.symbol){
+
+        firstCard.classList.add("matched");
+        secondCard.classList.add("matched");
+
+        matches++;
+
+        resetTurn();
+
+        if(matches === 16){
+            clearInterval(timerInterval);
+            alert("You Win!");
+        }
+
+    } else {
+
+        setTimeout(()=>{
+            firstCard.textContent = "?";
+            secondCard.textContent = "?";
+
+            firstCard.classList.remove("revealed");
+            secondCard.classList.remove("revealed");
+
+            resetTurn();
+        },800);
+    }
+}
+
+function resetTurn(){
+    firstCard = null;
+    secondCard = null;
+    lockBoard = false;
+}
+
+startGame();
+</script>
+
+</body>
+</html>
