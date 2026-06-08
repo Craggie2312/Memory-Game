@@ -46,8 +46,8 @@ let secondCard = null;
 let lockBoard = false;
 let matches = 0;
 
-let timer = 60;
-let totalTime = 60;
+let timer = 40;
+let totalTime = 40;
 let interval;
 let gameStarted = false;
 
@@ -106,17 +106,17 @@ function showPreview(){
     lockBoard = true;
     updateProgressBar();
     
-    // Show all icons for 5 seconds
+    // Show all icons for 10 seconds
     setTimeout(()=>{
-        // After 5 seconds, hide all cards
+        // After 10 seconds, hide all cards
         document.querySelectorAll(".card").forEach(card=>{
             card.classList.remove("revealed");
             card.classList.add("hidden");
         });
 
-        // Show for another 5 seconds
+        // Show for another 10 seconds
         setTimeout(()=>{
-            // After another 5 seconds, cover them and start timer
+            // After another 10 seconds, cover them and start timer
             document.querySelectorAll(".card").forEach(card=>{
                 card.classList.remove("revealed");
                 card.classList.add("hidden");
