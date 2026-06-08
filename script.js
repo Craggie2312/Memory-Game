@@ -1,105 +1,174 @@
-// Memory Game Logic
-const symbols = ['🎨', '🎮', '🎭', '🎪', '🎯', '🎲', '🎸', '🎬'];
-const cards = [...symbols, ...symbols]; // Duplicate for pairs
-let flippedCards = [];
-let matchedCards = [];
-let moves = 0;
+const ICONS = [
+    "fa-bath",
+    "fa-gear",
+    "fa-github",
+    "fa-box",
+    "fa-wifi",
+    "fa-envelope",
+    "fa-sack-dollar",
+    "fa-shield-halved",
+    "fa-leaf",
+    "fa-camera",
+    "fa-gamepad",
+    "fa-fingerprint",
+    "fa-ghost",
+    "fa-hat-cowboy",
+    "fa-wave-square",
+    "fa-folder"
+];
+
+const board = document.getElementById("board");
+const timerInput = document.getElementById("timerInput");
+const timerDisplay = document.getElementById("timeRemaining");
+const startBtn = document.getElementById("startBtn");
+
+let firstCard = null;
+let secondCard = null;
+let lockBoard = false;
 let matches = 0;
 
-// Shuffle function using Fisher-Yates algorithm
-function shuffleArray(array) {
-    const shuffled = [...array];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+let timer = 60;
+let interval;
+
+function shuffle(array){
+    for(let i=array.length-1;i>0;i--){
+        const j=Math.floor(Math.random()*(i+1));
+        [array[i],array[j]]=[array[j],array[i]];
     }
-    return shuffled;
 }
 
-// Initialize game board
-function initializeGame() {
-    const gameBoard = document.getElementById('gameBoard');
-    gameBoard.innerHTML = '';
-    flippedCards = [];
-    matchedCards = [];
-    moves = 0;
-    matches = 0;
-    updateStats();
+function createDeck(){
 
-    const shuffledCards = shuffleArray(cards);
+    const deck = [...ICONS, ...ICONS];
 
-    shuffledCards.forEach((symbol, index) => {
-        const card = document.createElement('button');
-        card.className = 'card';
-        card.textContent = '?';
-        card.dataset.symbol = symbol;
-        card.dataset.index = index;
-        card.addEventListener('click', flipCard);
-        gameBoard.appendChild(card);
+    shuffle(deck);
+
+    return deck;
+}
+
+function renderBoard(){
+
+    board.innerHTML="";
+
+    const deck = createDeck();
+
+    deck.forEach(icon=>{
+
+        const card=document.createElement("div");
+
+        card.className="card hidden";
+
+        card.dataset.icon=icon;
+
+        card.innerHTML=`<i class="fa-solid ${icon}"></i>`;
+
+        card.addEventListener("click",()=>flipCard(card));
+
+        board.appendChild(card);
     });
 }
 
-// Flip card logic
-function flipCard(event) {
-    const card = event.target;
+function flipCard(card){
 
-    // Prevent clicking if card is already flipped or matched
-    if (flippedCards.includes(card) || matchedCards.includes(card) || flippedCards.length >= 2) {
+    if(lockBoard) return;
+
+    if(card.classList.contains("matched")) return;
+
+    if(card===firstCard) return;
+
+    card.classList.remove("hidden");
+    card.classList.add("revealed");
+
+    if(!firstCard){
+        firstCard=card;
         return;
     }
 
-    // Flip the card
-    card.classList.add('flipped');
-    card.textContent = card.dataset.symbol;
-    flippedCards.push(card);
+    secondCard=card;
 
-    // Check for match
-    if (flippedCards.length === 2) {
-        moves++;
-        updateStats();
-        checkMatch();
-    }
-}
+    lockBoard=true;
 
-// Check if cards match
-function checkMatch() {
-    const [card1, card2] = flippedCards;
+    if(firstCard.dataset.icon===secondCard.dataset.icon){
 
-    if (card1.dataset.symbol === card2.dataset.symbol) {
-        // Match found
-        card1.classList.add('matched');
-        card2.classList.add('matched');
-        matchedCards.push(card1, card2);
+        firstCard.classList.add("matched");
+        secondCard.classList.add("matched");
+
         matches++;
-        updateStats();
-        flippedCards = [];
 
-        // Check if game is won
-        if (matchedCards.length === cards.length) {
-            setTimeout(() => {
-                alert(`🎉 You won in ${moves} moves!`);
-            }, 500);
+        resetTurn();
+
+        if(matches===16){
+
+            clearInterval(interval);
+
+            alert("You Win!");
         }
-    } else {
-        // No match - flip back after delay
-        setTimeout(() => {
-            card1.classList.remove('flipped');
-            card2.classList.remove('flipped');
-            card1.textContent = '?';
-            card2.textContent = '?';
-            flippedCards = [];
-        }, 1000);
+
+    }else{
+
+        setTimeout(()=>{
+
+            firstCard.classList.add("hidden");
+            secondCard.classList.add("hidden");
+
+            firstCard.classList.remove("revealed");
+            secondCard.classList.remove("revealed");
+
+            resetTurn();
+
+        },700);
     }
 }
 
-// Update move and match counter
-function updateStats() {
-    document.getElementById('moves').textContent = moves;
-    document.getElementById('matches').textContent = matches;
+function resetTurn(){
+    firstCard=null;
+    secondCard=null;
+    lockBoard=false;
 }
 
-// Reset game button
-document.getElementById('reset-btn').addEventListener('click', initializeGame);
+function startTimer(){
 
-// Start game when page loads
-window.addEventListener('load', initializeGame);
+    clearInterval(interval);
+
+    timer=parseInt(timerInput.value,10);
+
+    timerDisplay.textContent=timer;
+
+    interval=setInterval(()=>{
+
+        timer--;
+
+        timerDisplay.textContent=timer;
+
+        if(timer<=0){
+
+            clearInterval(interval);
+
+            alert("Time Up!");
+
+            document
+                .querySelectorAll(".card")
+                .forEach(card=>{
+                    card.style.pointerEvents="none";
+                });
+        }
+
+    },1000);
+}
+
+function startGame(){
+
+    matches=0;
+
+    firstCard=null;
+    secondCard=null;
+    lockBoard=false;
+
+    renderBoard();
+
+    startTimer();
+}
+
+startBtn.addEventListener("click",startGame);
+
+startGame();
