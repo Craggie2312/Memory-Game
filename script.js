@@ -33,13 +33,13 @@ const ICONS = [
     "fa-bottle-water"
 ];
 
-const board = document.getElementById("board");
-const timerInput = document.getElementById("timerInput");
-const progressBar = document.getElementById("progressBar");
-const startBtn = document.getElementById("startBtn");
-const rowsInput = document.getElementById("rowsInput");
-const colsInput = document.getElementById("colsInput");
-const applySettingsBtn = document.getElementById("applySettingsBtn");
+let board;
+let timerInput;
+let progressBar;
+let startBtn;
+let rowsInput;
+let colsInput;
+let applySettingsBtn;
 
 let firstCard = null;
 let secondCard = null;
@@ -96,8 +96,10 @@ function renderBoard(){
 }
 
 function updateProgressBar(){
-    const percentage = (timer / totalTime) * 100;
-    progressBar.style.width = percentage + "%";
+    if(progressBar){
+        const percentage = (timer / totalTime) * 100;
+        progressBar.style.width = percentage + "%";
+    }
 }
 
 function showPreview(){
@@ -225,6 +227,15 @@ function setupTabSwitching(){
 
 // Initialize
 function init(){
+    // Get DOM elements
+    board = document.getElementById("board");
+    timerInput = document.getElementById("timerInput");
+    progressBar = document.getElementById("progressBar");
+    startBtn = document.getElementById("startBtn");
+    rowsInput = document.getElementById("rowsInput");
+    colsInput = document.getElementById("colsInput");
+    applySettingsBtn = document.getElementById("applySettingsBtn");
+
     setupTabSwitching();
     
     // Set initial values
