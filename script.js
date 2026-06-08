@@ -29,6 +29,7 @@ let matches = 0;
 
 let timer = 60;
 let interval;
+let gameStarted = false;
 
 function shuffle(array){
     for(let i=array.length-1;i>0;i--){
@@ -38,42 +39,56 @@ function shuffle(array){
 }
 
 function createDeck(){
-
     const deck = [...ICONS, ...ICONS];
-
     shuffle(deck);
-
     return deck;
 }
 
 function renderBoard(){
-
     board.innerHTML="";
 
     const deck = createDeck();
 
     deck.forEach(icon=>{
-
         const card=document.createElement("div");
-
-        card.className="card hidden";
-
+        card.className="card revealed";
         card.dataset.icon=icon;
-
         card.innerHTML=`<i class="fa-solid ${icon}"></i>`;
-
         card.addEventListener("click",()=>flipCard(card));
-
         board.appendChild(card);
     });
 }
 
+function showPreview(){
+    lockBoard = true;
+    
+    // Show all icons for 5 seconds
+    setTimeout(()=>{
+        // After 5 seconds, hide all cards
+        document.querySelectorAll(".card").forEach(card=>{
+            card.classList.remove("revealed");
+            card.classList.add("hidden");
+        });
+
+        // Show for another 5 seconds
+        setTimeout(()=>{
+            // After another 5 seconds, cover them and start timer
+            document.querySelectorAll(".card").forEach(card=>{
+                card.classList.remove("revealed");
+                card.classList.add("hidden");
+            });
+
+            lockBoard = false;
+            gameStarted = true;
+            startTimer();
+        }, 5000);
+    }, 5000);
+}
+
 function flipCard(card){
-
+    if(!gameStarted) return;
     if(lockBoard) return;
-
     if(card.classList.contains("matched")) return;
-
     if(card===firstCard) return;
 
     card.classList.remove("hidden");
@@ -85,29 +100,21 @@ function flipCard(card){
     }
 
     secondCard=card;
-
     lockBoard=true;
 
     if(firstCard.dataset.icon===secondCard.dataset.icon){
-
         firstCard.classList.add("matched");
         secondCard.classList.add("matched");
 
         matches++;
-
         resetTurn();
 
         if(matches===16){
-
             clearInterval(interval);
-
             alert("You Win!");
         }
-
     }else{
-
         setTimeout(()=>{
-
             firstCard.classList.add("hidden");
             secondCard.classList.add("hidden");
 
@@ -115,7 +122,6 @@ function flipCard(card){
             secondCard.classList.remove("revealed");
 
             resetTurn();
-
         },700);
     }
 }
@@ -127,46 +133,34 @@ function resetTurn(){
 }
 
 function startTimer(){
-
     clearInterval(interval);
-
     timer=parseInt(timerInput.value,10);
-
     timerDisplay.textContent=timer;
 
     interval=setInterval(()=>{
-
         timer--;
-
         timerDisplay.textContent=timer;
 
         if(timer<=0){
-
             clearInterval(interval);
-
             alert("Time Up!");
 
-            document
-                .querySelectorAll(".card")
-                .forEach(card=>{
-                    card.style.pointerEvents="none";
-                });
+            document.querySelectorAll(".card").forEach(card=>{
+                card.style.pointerEvents="none";
+            });
         }
-
     },1000);
 }
 
 function startGame(){
-
     matches=0;
-
     firstCard=null;
     secondCard=null;
     lockBoard=false;
+    gameStarted = false;
 
     renderBoard();
-
-    startTimer();
+    showPreview();
 }
 
 startBtn.addEventListener("click",startGame);
