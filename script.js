@@ -223,30 +223,46 @@ function setupTabSwitching(){
     });
 }
 
-startBtn.addEventListener("click", startGame);
+// Initialize
+function init(){
+    setupTabSwitching();
+    
+    // Set initial values
+    rowsInput.value = 4;
+    colsInput.value = 8;
+    rows = 4;
+    cols = 8;
+    
+    startBtn.addEventListener("click", startGame);
+    
+    applySettingsBtn.addEventListener("click", () => {
+        const newRows = parseInt(rowsInput.value, 10);
+        const newCols = parseInt(colsInput.value, 10);
 
-applySettingsBtn.addEventListener("click", () => {
-    const newRows = parseInt(rowsInput.value, 10);
-    const newCols = parseInt(colsInput.value, 10);
+        if(newRows < 2 || newRows > 8 || newCols < 2 || newCols > 8){
+            alert("Rows and columns must be between 2 and 8");
+            return;
+        }
 
-    if(newRows < 2 || newRows > 8 || newCols < 2 || newCols > 8){
-        alert("Rows and columns must be between 2 and 8");
-        return;
-    }
+        if(newRows * newCols > ICONS.length * 2){
+            alert("Grid too large! Maximum is " + (ICONS.length * 2) + " cards.");
+            return;
+        }
 
-    if(newRows * newCols > ICONS.length * 2){
-        alert("Grid too large! Maximum is " + (ICONS.length * 2) + " cards.");
-        return;
-    }
+        rows = newRows;
+        cols = newCols;
 
-    rows = newRows;
-    cols = newCols;
+        startGame();
 
+        document.querySelector('.tab-btn[data-tab="game"]').click();
+    });
+    
     startGame();
+}
 
-    document.querySelector('.tab-btn[data-tab="game"]').click();
-});
-
-setupTabSwitching();
-
-startGame();
+// Wait for DOM to be ready
+if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+} else {
+    init();
+}
