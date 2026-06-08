@@ -51,8 +51,8 @@ let totalTime = 60;
 let interval;
 let gameStarted = false;
 
-let rows = 8;
-let cols = 4;
+let rows = 4;
+let cols = 8;
 let deck = [];
 
 function shuffle(array){
