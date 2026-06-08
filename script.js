@@ -14,13 +14,32 @@ const ICONS = [
     "fa-ghost",
     "fa-hat-cowboy",
     "fa-wave-square",
-    "fa-folder"
+    "fa-folder",
+    "fa-heart",
+    "fa-star",
+    "fa-sun",
+    "fa-moon",
+    "fa-cloud",
+    "fa-tree",
+    "fa-fire",
+    "fa-anchor",
+    "fa-apple-alt",
+    "fa-baseball",
+    "fa-bell",
+    "fa-bicycle",
+    "fa-bomb",
+    "fa-book",
+    "fa-bookmark",
+    "fa-bottle-water"
 ];
 
 const board = document.getElementById("board");
 const timerInput = document.getElementById("timerInput");
 const timerDisplay = document.getElementById("timeRemaining");
 const startBtn = document.getElementById("startBtn");
+const rowsInput = document.getElementById("rowsInput");
+const colsInput = document.getElementById("colsInput");
+const applySettingsBtn = document.getElementById("applySettingsBtn");
 
 let firstCard = null;
 let secondCard = null;
@@ -31,6 +50,10 @@ let timer = 60;
 let interval;
 let gameStarted = false;
 
+let rows = 4;
+let cols = 8;
+let deck = [];
+
 function shuffle(array){
     for(let i=array.length-1;i>0;i--){
         const j=Math.floor(Math.random()*(i+1));
@@ -39,15 +62,27 @@ function shuffle(array){
 }
 
 function createDeck(){
-    const deck = [...ICONS, ...ICONS];
-    shuffle(deck);
-    return deck;
+    const totalCards = rows * cols;
+    const pairsNeeded = totalCards / 2;
+    
+    if(pairsNeeded > ICONS.length){
+        alert("Not enough icons for this grid size! Maximum is " + (ICONS.length * 2) + " cards.");
+        return [];
+    }
+    
+    const selectedIcons = ICONS.slice(0, pairsNeeded);
+    const newDeck = [...selectedIcons, ...selectedIcons];
+    shuffle(newDeck);
+    return newDeck;
 }
 
 function renderBoard(){
     board.innerHTML="";
+    board.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
 
-    const deck = createDeck();
+    deck = createDeck();
+
+    if(deck.length === 0) return;
 
     deck.forEach(icon=>{
         const card=document.createElement("div");
@@ -109,7 +144,7 @@ function flipCard(card){
         matches++;
         resetTurn();
 
-        if(matches===16){
+        if(matches === deck.length / 2){
             clearInterval(interval);
             alert("You Win!");
         }
@@ -163,6 +198,47 @@ function startGame(){
     showPreview();
 }
 
-startBtn.addEventListener("click",startGame);
+function setupTabSwitching(){
+    const tabBtns = document.querySelectorAll(".tab-btn");
+    const tabContents = document.querySelectorAll(".tab-content");
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+            const tabName = btn.dataset.tab;
+
+            tabBtns.forEach(b => b.classList.remove("active"));
+            tabContents.forEach(c => c.classList.remove("active"));
+
+            btn.classList.add("active");
+            document.getElementById(tabName).classList.add("active");
+        });
+    });
+}
+
+startBtn.addEventListener("click", startGame);
+
+applySettingsBtn.addEventListener("click", () => {
+    const newRows = parseInt(rowsInput.value, 10);
+    const newCols = parseInt(colsInput.value, 10);
+
+    if(newRows < 2 || newRows > 8 || newCols < 2 || newCols > 8){
+        alert("Rows and columns must be between 2 and 8");
+        return;
+    }
+
+    if(newRows * newCols > ICONS.length * 2){
+        alert("Grid too large! Maximum is " + (ICONS.length * 2) + " cards.");
+        return;
+    }
+
+    rows = newRows;
+    cols = newCols;
+
+    startGame();
+
+    document.querySelector('.tab-btn[data-tab="game"]').click();
+});
+
+setupTabSwitching();
 
 startGame();
