@@ -51,8 +51,8 @@ let totalTime = 60;
 let interval;
 let gameStarted = false;
 
-let rows = 4;
-let cols = 8;
+let rows = 8;
+let cols = 4;
 let deck = [];
 
 function shuffle(array){
@@ -239,10 +239,10 @@ function init(){
     setupTabSwitching();
     
     // Set initial values
-    rowsInput.value = 4;
-    colsInput.value = 8;
-    rows = 4;
-    cols = 8;
+    rowsInput.value = 8;
+    colsInput.value = 4;
+    rows = 8;
+    cols = 4;
     
     startBtn.addEventListener("click", startGame);
     
