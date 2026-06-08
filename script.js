@@ -1,118 +1,105 @@
-const board = document.getElementById('board');
-const startBtn = document.getElementById('startBtn');
-const timerInput = document.getElementById('timerInput');
-const timeRemaining = document.getElementById('timeRemaining');
+// Memory Game Logic
+const symbols = ['🎨', '🎮', '🎭', '🎪', '🎯', '🎲', '🎸', '🎬'];
+const cards = [...symbols, ...symbols]; // Duplicate for pairs
+let flippedCards = [];
+let matchedCards = [];
+let moves = 0;
+let matches = 0;
 
-let cards = [];
-let flipped = [];
-let matched = [];
-let gameActive = false;
-let timer = null;
-let timeLeft = 0;
-
-const emojis = ['🎮', '🎨', '🎭', '🎪', '🎯', '🎲', '🎸', '🎺'];
-
-function initGame() {
-    board.innerHTML = '';
-    cards = [];
-    flipped = [];
-    matched = [];
-    gameActive = true;
-    
-    timeLeft = parseInt(timerInput.value);
-    timeRemaining.textContent = timeLeft;
-    
-    // Create card pairs
-    const gameCards = [...emojis, ...emojis].sort(() => Math.random() - 0.5);
-    
-    // Create card elements
-    gameCards.forEach((emoji, index) => {
-        const card = document.createElement('button');
-        card.className = 'card';
-        card.dataset.index = index;
-        card.dataset.emoji = emoji;
-        card.textContent = '?';
-        
-        card.addEventListener('click', flipCard);
-        board.appendChild(card);
-        cards.push(card);
-    });
-    
-    startTimer();
+// Shuffle function using Fisher-Yates algorithm
+function shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
 }
 
-function flipCard(e) {
-    if (!gameActive) return;
-    
-    const card = e.target;
-    const index = card.dataset.index;
-    
-    // Prevent flipping same card twice or already matched cards
-    if (flipped.includes(index) || matched.includes(index)) return;
-    
-    // Limit to 2 flipped cards
-    if (flipped.length >= 2) return;
-    
-    card.textContent = card.dataset.emoji;
+// Initialize game board
+function initializeGame() {
+    const gameBoard = document.getElementById('gameBoard');
+    gameBoard.innerHTML = '';
+    flippedCards = [];
+    matchedCards = [];
+    moves = 0;
+    matches = 0;
+    updateStats();
+
+    const shuffledCards = shuffleArray(cards);
+
+    shuffledCards.forEach((symbol, index) => {
+        const card = document.createElement('button');
+        card.className = 'card';
+        card.textContent = '?';
+        card.dataset.symbol = symbol;
+        card.dataset.index = index;
+        card.addEventListener('click', flipCard);
+        gameBoard.appendChild(card);
+    });
+}
+
+// Flip card logic
+function flipCard(event) {
+    const card = event.target;
+
+    // Prevent clicking if card is already flipped or matched
+    if (flippedCards.includes(card) || matchedCards.includes(card) || flippedCards.length >= 2) {
+        return;
+    }
+
+    // Flip the card
     card.classList.add('flipped');
-    flipped.push(index);
-    
-    if (flipped.length === 2) {
+    card.textContent = card.dataset.symbol;
+    flippedCards.push(card);
+
+    // Check for match
+    if (flippedCards.length === 2) {
+        moves++;
+        updateStats();
         checkMatch();
     }
 }
 
+// Check if cards match
 function checkMatch() {
-    const [idx1, idx2] = flipped;
-    const emoji1 = cards[idx1].dataset.emoji;
-    const emoji2 = cards[idx2].dataset.emoji;
-    
-    if (emoji1 === emoji2) {
+    const [card1, card2] = flippedCards;
+
+    if (card1.dataset.symbol === card2.dataset.symbol) {
         // Match found
-        matched.push(idx1, idx2);
-        cards[idx1].classList.add('matched');
-        cards[idx2].classList.add('matched');
-        flipped = [];
-        
-        if (matched.length === cards.length) {
-            endGame(true);
+        card1.classList.add('matched');
+        card2.classList.add('matched');
+        matchedCards.push(card1, card2);
+        matches++;
+        updateStats();
+        flippedCards = [];
+
+        // Check if game is won
+        if (matchedCards.length === cards.length) {
+            setTimeout(() => {
+                alert(`🎉 You won in ${moves} moves!`);
+            }, 500);
         }
     } else {
-        // No match
+        // No match - flip back after delay
         setTimeout(() => {
-            cards[idx1].textContent = '?';
-            cards[idx2].textContent = '?';
-            cards[idx1].classList.remove('flipped');
-            cards[idx2].classList.remove('flipped');
-            flipped = [];
+            card1.classList.remove('flipped');
+            card2.classList.remove('flipped');
+            card1.textContent = '?';
+            card2.textContent = '?';
+            flippedCards = [];
         }, 1000);
     }
 }
 
-function startTimer() {
-    if (timer) clearInterval(timer);
-    
-    timer = setInterval(() => {
-        timeLeft--;
-        timeRemaining.textContent = timeLeft;
-        
-        if (timeLeft <= 0) {
-            endGame(false);
-        }
-    }, 1000);
+// Update move and match counter
+function updateStats() {
+    document.getElementById('moves').textContent = moves;
+    document.getElementById('matches').textContent = matches;
 }
 
-function endGame(won) {
-    gameActive = false;
-    clearInterval(timer);
-    
-    setTimeout(() => {
-        if (won) {
-            alert('🎉 Congratulations! You won! 🎉');
-        } else {
-            alert('⏰ Time\'s up! Game Over! Try again!');
-        }
-    }, 300);
-}
+// Reset game button
+document.getElementById('reset-btn').addEventListener('click', initializeGame);
 
-startBtn.addEventListener('click', initGame);
+// Start game when page loads
+window.addEventListener('load', initializeGame);
